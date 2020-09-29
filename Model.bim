@@ -1,0 +1,140 @@
+{
+  "name": "SemanticModel",
+  "compatibilityLevel": 1200,
+  "model": {
+    "culture": "pt-BR",
+    "dataSources": [
+      {
+        "name": "Excel grupo",
+        "connectionString": "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=C:\\Users\\amsantos\\Documents\\grupo.xlsx;Persist Security Info=false;Extended Properties=\"Excel 12.0;HDR=Yes;\"",
+        "impersonationMode": "impersonateAccount",
+        "account": "tanac\\amsantos",
+        "annotations": [
+          {
+            "name": "ConnectionEditUISource",
+            "value": "Excel"
+          }
+        ]
+      }
+    ],
+    "tables": [
+      {
+        "name": "Grupo",
+        "columns": [
+          {
+            "name": "GRUPO",
+            "dataType": "string",
+            "sourceColumn": "GRUPO",
+            "sourceProviderType": "WChar"
+          },
+          {
+            "name": "VALOR",
+            "dataType": "double",
+            "sourceColumn": "VALOR",
+            "sourceProviderType": "Double"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Grupo",
+            "dataView": "full",
+            "source": {
+              "type": "query",
+              "query": " \t\t\t\tSELECT [Sheet1$].*   FROM [Sheet1$] ",
+              "dataSource": "Excel grupo"
+            }
+          }
+        ],
+        "measures": [
+          {
+            "name": "Valor Total",
+            "expression": "SUM(Grupo[VALOR])"
+          },
+          {
+            "name": "% Grupo",
+            "expression": " DIVIDE([Valor Total], [Grupo Acum])"
+          },
+          {
+            "name": "Grupo Acum",
+            "expression": " CALCULATE([Valor Total], ALL(GRUPO))"
+          },
+          {
+            "name": "RANK Grupo",
+            "expression": " RANKX(all(GRUPO), [Valor Total])"
+          }
+        ],
+        "annotations": [
+          {
+            "name": "_TM_ExtProp_QueryDefinition",
+            "value": " \t\t\t\tSELECT [Sheet1$].*   FROM [Sheet1$] "
+          },
+          {
+            "name": "_TM_ExtProp_DbTableName",
+            "value": "Sheet1$"
+          }
+        ]
+      },
+      {
+        "name": "Ranking Grupos",
+        "columns": [
+          {
+            "type": "calculatedTableColumn",
+            "name": "GRUPO",
+            "dataType": "string",
+            "isNameInferred": true,
+            "isDataTypeInferred": true,
+            "sourceColumn": "Grupo[GRUPO]"
+          },
+          {
+            "type": "calculated",
+            "name": "Ranking",
+            "dataType": "int64",
+            "isDataTypeInferred": true,
+            "expression": " RANKX ('Ranking Grupos', [Valor Total])"
+          },
+          {
+            "type": "calculated",
+            "name": "Classificação",
+            "dataType": "string",
+            "isDataTypeInferred": true,
+            "expression": [
+              "",
+              "SWITCH (",
+              "    TRUE (),",
+              "    'Ranking Grupos'[Ranking] < 3, \"Menor 3\",",
+              "    'Ranking Grupos'[Ranking] >= 3",
+              "        && 'Ranking Grupos'[Ranking] <= 6, \"Entre 3 e 6\",",
+              "    'Ranking Grupos'[Ranking] > 6, \"Maior 6\"",
+              ")"
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "CalculatedTable 1",
+            "source": {
+              "type": "calculated",
+              "expression": " ALL(Grupo[GRUPO])"
+            }
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "33406bde-20e8-4563-a1e4-3c22dce1f162",
+        "fromTable": "Grupo",
+        "fromColumn": "GRUPO",
+        "toTable": "Ranking Grupos",
+        "toColumn": "GRUPO"
+      }
+    ],
+    "annotations": [
+      {
+        "name": "ClientCompatibilityLevel",
+        "value": "400"
+      }
+    ]
+  },
+  "id": "SemanticModel"
+}
